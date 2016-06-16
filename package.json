@@ -1,0 +1,21 @@
+{
+  "name": "availability",
+  "version": "1.0.0",
+  "description": "module used to determine ones availbility, taking into account time off, and other booked time slots.",
+  "main": "./availability.js",
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "keywords": [
+    "scheduling",
+    "availability",
+    "calendering",
+    "calendar",
+    "schedule"
+  ],
+  "author": "shinda singh",
+  "license": "ISC",
+  "dependencies": {
+    "moment": "^2.13.0"
+  }
+}
