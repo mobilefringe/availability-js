@@ -13,7 +13,6 @@ var Availability = function() {
       1 : {start:startTime, end:endTime}
    }
    **/
-
   this.regularHours = {};
 
   /**
@@ -27,6 +26,13 @@ var Availability = function() {
 
   this.interval = 60;
   this.bufferTime = 0;
+
+  // Sets whether or not include unavailable date/times in the returned results.
+  this.includeUnavailable = false;
+
+  // Track each unavailable time slot with an id - so that we can easily
+  // track same unavailable time objects.
+  this.unavailableId = 0;
 };
 
 /**
@@ -59,10 +65,12 @@ Availability.prototype.setRegularHours = function(regularHours) {
  * @param {String|Moment|Date} startTime  A string that can be parsed into a moment date time or a momemnt, or date object.
  * @param {String|Moment|Date} endTime  A string that can be parsed into a moment date time or a momemnt, or date object.
  */
-Availability.prototype.addUnavailable = function(startTime, endTime) {
+Availability.prototype.addUnavailable = function(startTime, endTime, details) {
+  this.unavailableId++;
+
   startTime = moment(startTime);
   currentTime = moment(startTime);
-  
+
   // If only a start time is given assume until end of day.
   if (endTime === undefined ) {
     endTime = moment(currentTime);
@@ -90,6 +98,7 @@ Availability.prototype.addUnavailable = function(startTime, endTime) {
     if (this.unavailable[dateKey][hourKey] === undefined) {
       this.unavailable[dateKey][hourKey] = [];
     }
+    
 
     // Convenience variable.
     var uValue = this.unavailable[dateKey][hourKey];
@@ -97,12 +106,14 @@ Availability.prototype.addUnavailable = function(startTime, endTime) {
     // If this currentTime / endtime takes up the whole hour.
     // make it the first element and remove all others.
     if (uValue.length > 0 && currentTime.minute() === 0 && currentEndTime.minute() == 59) {
-      uValue = [];
+      this.unavailable[dateKey][hourKey] = [];
     } 
-
-    uValue.push({
+    
+    this.unavailable[dateKey][hourKey].push({
       'start' : moment(currentTime),
-      'end' : moment(currentEndTime)
+      'end' : moment(currentEndTime),
+      'details' : details,
+      '__availabilityId' : this.unavailableId
     });
 
     // @TODO could probably make this method more efficent by removing overlapping.
@@ -155,26 +166,55 @@ Availability.prototype.getAvailability = function(startDate, endDate) {
     var times = [];
     
     while (currentDate.isBefore(endOfDay)) {
+      var startFinish = {};
 
       // Test to see that there's no existing appointment at this time.
-      if (this.isUnavailableAt(currentDate)) {
-        currentDate.add(this.interval, 'm');
-        continue;
+      var tmpUnavailableAt = this.getUnavailableAt(currentDate);
+      if (tmpUnavailableAt.length > 0) {
+        if (this.includeUnavailable) {
+          startFinish['unavailable'] = tmpUnavailableAt;
+        } else {
+          currentDate.add(this.interval, 'm');
+          continue;
+        }
       }
 
-      var startFinish = {
-        "start" : currentDate.format("HH:mm"),
-        "end":  null
-      };
+      startFinish['start'] = currentDate.format("HH:mm");
+      startFinish['end'] = null;
 
       // Move the time forward to our end time.
       currentDate.add(this.interval, 'm');
 
       // Test to see that our end time doesn't overlap with any appointment either.
-      if (this.isUnavailableAt(currentDate)) {
-        currentDate.add(this.interval, 'm');
-        continue;
+      tmpUnavailableAt = this.getUnavailableAt(currentDate);
+      if (tmpUnavailableAt.length > 0) {
+        if (this.includeUnavailable) {
+          // If it hasn't yet been set make it an array.
+          if (startFinish['unavailable'] === undefined){
+            startFinish['unavailable'] = [];
+          } 
+
+          startFinish['unavailable'] = startFinish['unavailable'].concat(tmpUnavailableAt);
+        } else {
+          currentDate.add(this.interval, 'm');
+          continue;
+        }
       }
+
+      // Remove duplicate unavailable times
+      if (startFinish['unavailable'] !== undefined) {
+        var dupKeys = {};
+        startFinish['unavailable'] = startFinish['unavailable'].filter(function(e){
+          // If we found a key in the dup keys object we want this filtered out.
+          if (dupKeys[e.__availabilityId] !== undefined) {
+            return false;
+          }
+
+          dupKeys[e.__availabilityId] = true;
+          return true;
+        });
+      }
+      
 
       // Add time to our availability.
       startFinish.end = currentDate.format("HH:mm");
@@ -200,17 +240,23 @@ Availability.prototype.getAvailability = function(startDate, endDate) {
  * Check to see if the user is available at a current date time.
  */
 Availability.prototype.isUnavailableAt = function (date) {
-  date = moment(date);
+  return this.getUnavailableAt(date).length > 0;
+};
 
+Availability.prototype.getUnavailableAt = function(date) {
+  date = moment(date);
+  
   dateKey = date.format('Y-MM-DD');
   hourKey = date.format('H');
 
   if (this.unavailable[dateKey] === undefined) 
-    return false;
+    return [];
   
   if (this.unavailable[dateKey][hourKey] === undefined)
-    return false;
+    return [];
   
+  var unavailable  = [];
+
   // Loop through the unavailable times and determine if the selected time is unavailable.
   for (var x in this.unavailable[dateKey][hourKey]) {
     // Convinience variable.
@@ -218,14 +264,13 @@ Availability.prototype.isUnavailableAt = function (date) {
 
     // if the start time falls between the start and end time then they are unavailable
     if (date.isBetween(timeNotAvailable['start'], timeNotAvailable['end'], 'minutes','[]')) {
-      return true;
+      unavailable.push(timeNotAvailable);
     }
   }
 
   // Nothings matched so false.
-  return false;
+  return unavailable;
 };
-
 
 /**
  * Sets interval
@@ -245,6 +290,11 @@ Availability.prototype.setInterval = function(interval){
 
 Availability.prototype.getUnavailable = function(){
   return this.unavailable;
+};
+
+Availability.prototype.setIncludeUnavailable = function(includeUnavailable) {
+  this.includeUnavailable = !!includeUnavailable;
+  return this;
 };
 
 /**

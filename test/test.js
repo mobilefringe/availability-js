@@ -1,13 +1,16 @@
 var Availability = require("../availability.js");
 var assert = require("assert");
 var moment = require('moment');
+var util = require('util');
 
 var seeds = {
   "threeDays" : require("./seeds/threeDays.json"),
   "threeDaysNumeric" : require("./seeds/threeDaysNumeric.json"),
   "testRegularHours" : require("./seeds/testRegularHours"),
   'test15MinuteInterval' : require("./seeds/test15MinuteInterval"),
-  'testUnavailableForBlocks': require('./seeds/testUnavailableForBlocks')
+  'testUnavailableForBlocks' : require("./seeds/testUnavailableForBlocks"),
+  'testIncludeUnavailable' : require("./seeds/testIncludeUnavailable"),
+  'testIncludeUnavailableNotes': require("./seeds/testIncludeUnavailableNotes")
 };
 
 // test sunny case let's just test regular scheduled hours.
@@ -132,11 +135,47 @@ function testUnavailableForBlock() {
 
   // Test out for day 
   hours = av.getAvailability("2016-06-20", "2016-06-24");
-
+  
   assert.deepEqual(hours, seeds['testUnavailableForBlocks']);
 }
 
+function testIncludeUnavailable() {
+  av = new Availability();
+  av.setRegularHours(seeds.threeDays);
 
+  av.addUnavailable('2016-06-21 13:30', '2016-06-21 15:30');
+  av.addUnavailable('2016-06-20 12:15', '2016-06-20 14:15');
+  av.setIncludeUnavailable(true);
+
+  // Test out for day 
+  hours = av.getAvailability("2016-06-20", "2016-06-24");
+
+  assert.deepEqual(hours['2016-06-22'], seeds['testIncludeUnavailable']['2016-06-22']);
+  assert.notEqual(hours['2016-06-20'][3]['unavailable'], undefined);
+  assert.notEqual(hours['2016-06-20'][5]['unavailable'], undefined);
+  assert.equal(hours['2016-06-20'][6]['unavailable'], undefined);
+  assert.notEqual(hours['2016-06-21'][2]['unavailable'], undefined);
+}
+
+function testIncludeUnavailableNotes() {
+  av = new Availability();
+  av.setRegularHours(seeds.threeDays);
+
+  // av.addUnavailable('2016-06-21 13:30', '2016-06-21 15:30', 'appointment');
+  av.addUnavailable('2016-06-20 12:15', '2016-06-20 14:15', 'holiday');
+  av.addUnavailable('2016-06-20 14:30', '2016-06-20 17:00', {'name': 'wtf brah'});
+  av.setIncludeUnavailable(true);
+
+
+  // Test out for day 
+  hours = av.getAvailability("2016-06-20", "2016-06-24");
+  
+  assert.notEqual(hours['2016-06-20'][3]['unavailable'], undefined);
+  assert.equal(hours['2016-06-20'][3]['unavailable'][0]['details'], 'holiday');
+  assert.notEqual(hours['2016-06-20'][3]['unavailable'], undefined);
+  assert.equal(hours['2016-06-20'][4]['unavailable'].length, 1);
+  assert.equal(hours['2016-06-20'][5]['unavailable'].length, 2);
+}
 
 testRegularHours();
 testNumericDays();
@@ -146,3 +185,5 @@ testUnavailableRanges();
 testIsUnavailable();
 testOutForDayAppointments();
 testUnavailableForBlock();
+testIncludeUnavailable();
+testIncludeUnavailableNotes();
