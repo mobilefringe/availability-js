@@ -1,4 +1,5 @@
 var moment = require('moment');
+var _ = require('underscore');
 
 // Guide to errors more as a reference.
 errors = {
@@ -135,7 +136,14 @@ Availability.prototype.addUnavailable = function(startTime, endTime, details) {
  * @return {Object} Returns a hash object between the start date and end date,
  *  with available times for each date.
  */
-Availability.prototype.getAvailability = function(startDate, endDate) {
+Availability.prototype.getAvailability = function(startDate, endDate, options) {
+
+  var defaults = {
+    'returnDates' : false
+  };
+
+  options = _.extend(defaults, options);
+
   startDate = moment(startDate);
   currentDate = moment(startDate);
   availableDateTimes = {};
@@ -178,10 +186,13 @@ Availability.prototype.getAvailability = function(startDate, endDate) {
           continue;
         }
       }
-
       startFinish['start'] = currentDate.format("HH:mm");
       startFinish['end'] = null;
 
+      if (options['returnDates']) {
+        startFinish['startDate'] = currentDate.toDate();
+      }
+      
       // Move the time forward to our end time.
       currentDate.add(this.interval, 'm');
 
@@ -215,9 +226,12 @@ Availability.prototype.getAvailability = function(startDate, endDate) {
         });
       }
       
+      startFinish.end = currentDate.format("HH:mm");
 
       // Add time to our availability.
-      startFinish.end = currentDate.format("HH:mm");
+      if (options['returnDates']) {
+        startFinish.endDate = currentDate.toDate();
+      }
 
       // Add time to our array of available times
       times.push(startFinish);
