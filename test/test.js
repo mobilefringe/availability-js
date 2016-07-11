@@ -7,6 +7,7 @@ var seeds = {
   "threeDays" : require("./seeds/threeDays.json"),
   "threeDaysNumeric" : require("./seeds/threeDaysNumeric.json"),
   "testRegularHours" : require("./seeds/testRegularHours"),
+  "testRegularHoursWithDates" : require("./seeds/testRegularHoursWithDates"),
   'test15MinuteInterval' : require("./seeds/test15MinuteInterval"),
   'testUnavailableForBlocks' : require("./seeds/testUnavailableForBlocks"),
   'testIncludeUnavailable' : require("./seeds/testIncludeUnavailable"),
@@ -21,6 +22,17 @@ function testRegularHours(){
   hours = av.getAvailability("2016-06-20", "2016-06-24");
   expected = seeds.testRegularHours;
 
+  assert.deepEqual(hours, expected, "Times returned didn't match expected");
+}
+
+// test sunny case let's just test regular scheduled hours.
+function testRegularHoursWithDates(){
+  av = new Availability();
+  av.setRegularHours(seeds.threeDays);
+
+  hours = av.getAvailability("2016-06-20", "2016-06-24", {returnDates: true});
+  expected = seeds.testRegularHoursWithDates;
+  console.log(expected);
   assert.deepEqual(hours, expected, "Times returned didn't match expected");
 }
 
@@ -187,3 +199,4 @@ testOutForDayAppointments();
 testUnavailableForBlock();
 testIncludeUnavailable();
 testIncludeUnavailableNotes();
+testRegularHoursWithDates();
