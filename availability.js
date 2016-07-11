@@ -133,6 +133,8 @@ Availability.prototype.addUnavailable = function(startTime, endTime, details) {
  * Returns all time availability based on interval for a given timeframe.
  * @param {string} startDate - A date time that can be parsed by Moment.js
  * @param {string} endDate - A datetime that can be parsed by Moment.js
+ * @param {Object} options - Option boject
+ * @param {boolean} options.returnDates - Return js date objects with the time array.
  * @return {Object} Returns a hash object between the start date and end date,
  *  with available times for each date.
  */
