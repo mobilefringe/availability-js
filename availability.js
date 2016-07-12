@@ -34,6 +34,16 @@ var Availability = function() {
   // Track each unavailable time slot with an id - so that we can easily
   // track same unavailable time objects.
   this.unavailableId = 0;
+  this.timezone = 'UTC';
+};
+  
+/**
+ * Set the timezone for all date and times.
+ * @param {String} Timezone in format supported by momentjs-timezone.
+ */
+Availability.prototype.setTimezone = function(timezone) {
+  this.timezone = timezone;
+  return this;
 };
 
 /**
@@ -68,23 +78,23 @@ Availability.prototype.setRegularHours = function(regularHours) {
  */
 Availability.prototype.addUnavailable = function(startTime, endTime, details) {
   this.unavailableId++;
-
-  startTime = moment(startTime);
-  currentTime = moment(startTime);
+  var timezone = this.timzone;
+  startTime = moment.tz(startTime, timezone);
+  currentTime = moment.tz(startTime, timezone);
 
   // If only a start time is given assume until end of day.
   if (endTime === undefined ) {
-    endTime = moment(currentTime);
+    endTime = currentTime.clone();
     endTime.endOf('day');
   } else {
-    endTime = moment(endTime);
+    endTime = moment.tz(endTime, timezone);
   }
  
   while (currentTime.isBefore(endTime)) {
     
     var dateKey = currentTime.format('Y-MM-DD');
     var hourKey = currentTime.format('H');
-    var currentEndTime = moment(currentTime).endOf('hour');
+    var currentEndTime = currentTime.clone().endOf('hour');
 
     // If the current end time happens after this hour block,
     // set the currentEndTime to be currentTime's end of hour.
@@ -111,8 +121,8 @@ Availability.prototype.addUnavailable = function(startTime, endTime, details) {
     } 
     
     this.unavailable[dateKey][hourKey].push({
-      'start' : moment(currentTime),
-      'end' : moment(currentEndTime),
+      'start' : moment.tz(currentTime, timezone),
+      'end' : moment.tz(currentEndTime, timezone),
       'details' : details,
       '__availabilityId' : this.unavailableId
     });
@@ -145,9 +155,10 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
   };
 
   options = _.extend(defaults, options);
+  timezone = this.timezone;
 
-  startDate = moment(startDate);
-  currentDate = moment(startDate);
+  startDate = moment.tz(startDate, timezone);
+  currentDate = moment.tz(startDate, timezone);
   availableDateTimes = {};
 
   // Loop from the start/date time to enddate time.
@@ -166,8 +177,8 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
     var dateKey = currentDate.format("Y-MM-DD");
     
     // Parse our regular hour times into times and start calculating time from the start time up until the end of the day.
-    var startTime = moment(regularHours.start, "HH:mm");
-    var endTime = moment(regularHours.end, "HH:mm");
+    var startTime = moment.tz(regularHours.start, "HH:mm", timezone);
+    var endTime = moment.tz(regularHours.end, "HH:mm", timezone);
     var endOfDay = moment(currentDate);
     
     currentDate.hour(startTime.hour()).minute(startTime.minute());
@@ -179,7 +190,9 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
       var startFinish = {};
 
       // Test to see that there's no existing appointment at this time.
-      var tmpUnavailableAt = this.getUnavailableAt(currentDate);
+      var tmpDate = currentDate.clone();
+      var tmpUnavailableAt = this.getUnavailableAt(tmpDate);
+
       if (tmpUnavailableAt.length > 0) {
         if (this.includeUnavailable) {
           startFinish['unavailable'] = tmpUnavailableAt;
@@ -192,7 +205,7 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
       startFinish['end'] = null;
 
       if (options['returnDates']) {
-        startFinish['startDate'] = currentDate.toDate();
+        startFinish['startDate'] = moment(currentDate).toJSON();
       }
       
       // Move the time forward to our end time.
@@ -232,7 +245,7 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
 
       // Add time to our availability.
       if (options['returnDates']) {
-        startFinish.endDate = currentDate.toDate();
+        startFinish.endDate = currentDate.clone().toJSON();
       }
 
       // Add time to our array of available times
@@ -260,7 +273,8 @@ Availability.prototype.isUnavailableAt = function (date) {
 };
 
 Availability.prototype.getUnavailableAt = function(date) {
-  date = moment(date);
+  var timezone = this.timezone;
+  date = moment.tz(date, timezone);
   
   dateKey = date.format('Y-MM-DD');
   hourKey = date.format('H');
