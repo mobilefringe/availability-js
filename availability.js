@@ -1,4 +1,4 @@
-var moment = require('moment');
+var moment = require('moment-timezone');
 var _ = require('underscore');
 
 // Guide to errors more as a reference.
