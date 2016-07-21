@@ -73,9 +73,9 @@ function testUnavailableSingleDay() {
   // Assert that there are 24 id's - 1 for each hour.
   assert.equal(Object.keys(unavailable['2016-06-01']).length, 24, 'Wrong number of keys detected for full day unavailability');
 
-  // Assert that 5PM is marked as 17:00 start time and endtime: 17:59 end time.
+  // Assert that 5PM is marked as 17:00 start time and endtime: 18:00 end time.
   assert.equal(unavailable['2016-06-01']['17'][0]['start'].minute(), 0);
-  assert.equal(unavailable['2016-06-01']['17'][0]['end'].minute(), 59);
+  assert.equal(unavailable['2016-06-01']['18'][0]['end'].minute(), 0);
 }
 
 // Test mixing unavaiable time use cases.
@@ -153,7 +153,8 @@ function testUnavailableForBlock() {
 
   // Test out for day 
   hours = av.getAvailability("2016-06-20", "2016-06-24");
-  
+
+  // console.log(av.getUnavailableAt('2016-06-20 13:59'));
   assert.deepEqual(hours, seeds['testUnavailableForBlocks']);
 }
 
@@ -167,12 +168,18 @@ function testIncludeUnavailable() {
 
   // Test out for day 
   hours = av.getAvailability("2016-06-20", "2016-06-24");
-
   assert.deepEqual(hours['2016-06-22'], seeds['testIncludeUnavailable']['2016-06-22']);
+  
   assert.notEqual(hours['2016-06-20'][3]['unavailable'], undefined);
   assert.notEqual(hours['2016-06-20'][5]['unavailable'], undefined);
   assert.equal(hours['2016-06-20'][6]['unavailable'], undefined);
   assert.notEqual(hours['2016-06-21'][2]['unavailable'], undefined);
+  
+  av.setInterval(15);
+  hours = av.getAvailability("2016-06-20", "2016-06-24");
+
+  // Tests that if not available at 12:15 that 12:00 - 12:15 is still available.
+  assert.equal(hours['2016-06-20'][12]['unavaiable'], undefined);
 }
 
 function testIncludeUnavailableNotes() {
@@ -184,10 +191,9 @@ function testIncludeUnavailableNotes() {
   av.addUnavailable('2016-06-20 14:30', '2016-06-20 17:00', {'name': 'wtf brah'});
   av.setIncludeUnavailable(true);
 
-
   // Test out for day 
   hours = av.getAvailability("2016-06-20", "2016-06-24");
-  
+
   assert.notEqual(hours['2016-06-20'][3]['unavailable'], undefined);
   assert.equal(hours['2016-06-20'][3]['unavailable'][0]['details'], 'holiday');
   assert.notEqual(hours['2016-06-20'][3]['unavailable'], undefined);
@@ -195,14 +201,14 @@ function testIncludeUnavailableNotes() {
   assert.equal(hours['2016-06-20'][5]['unavailable'].length, 2);
 }
 
-testRegularHours();
-testNumericDays();
-test15MinuteInterval();
-testUnavailableSingleDay();
-testUnavailableRanges();
-testIsUnavailable();
-testOutForDayAppointments();
-testUnavailableForBlock();
+// testRegularHours();
+// testNumericDays();
+// test15MinuteInterval();
+// testUnavailableSingleDay();
+// testUnavailableRanges();
+// testIsUnavailable();
+// testOutForDayAppointments();
+// testUnavailableForBlock();
 testIncludeUnavailable();
-testIncludeUnavailableNotes();
+// testIncludeUnavailableNotes();
 // testRegularHoursWithDates();

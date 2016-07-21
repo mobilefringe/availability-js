@@ -81,10 +81,10 @@ Availability.prototype.addUnavailable = function(startTime, endTime, details) {
   }
  
   while (currentTime.isBefore(endTime)) {
-    
+       
     var dateKey = currentTime.format('Y-MM-DD');
     var hourKey = currentTime.format('H');
-    var currentEndTime = moment(currentTime).endOf('hour');
+    var currentEndTime = moment(currentTime).endOf('hour').add(1, 'second');
 
     // If the current end time happens after this hour block,
     // set the currentEndTime to be currentTime's end of hour.
@@ -106,7 +106,8 @@ Availability.prototype.addUnavailable = function(startTime, endTime, details) {
 
     // If this currentTime / endtime takes up the whole hour.
     // make it the first element and remove all others.
-    if (uValue.length > 0 && currentTime.minute() === 0 && currentEndTime.minute() == 59) {
+    if (uValue.length > 0 && currentTime.minute() === 0 && 
+        (currentEndTime.minute() === 0 && currentEndTime.hour() == (currentTime.hour() + 1))) {
       this.unavailable[dateKey][hourKey] = [];
     } 
     
@@ -198,8 +199,11 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
       // Move the time forward to our end time.
       currentDate.add(this.interval, 'm');
 
-      // Test to see that our end time doesn't overlap with any appointment either.
-      tmpUnavailableAt = this.getUnavailableAt(currentDate);
+      // Test to see that our end time - 1 second doesn't overlap with any appointment either.
+      var tmpCurrentEndTime = moment(currentDate);
+      tmpCurrentEndTime.subtract(1, 'second');
+      
+      tmpUnavailableAt = this.getUnavailableAt(tmpCurrentEndTime);
       if (tmpUnavailableAt.length > 0) {
         if (this.includeUnavailable) {
           // If it hasn't yet been set make it an array.
@@ -264,7 +268,7 @@ Availability.prototype.getUnavailableAt = function(date) {
   
   dateKey = date.format('Y-MM-DD');
   hourKey = date.format('H');
-
+  
   if (this.unavailable[dateKey] === undefined) 
     return [];
   
@@ -277,9 +281,9 @@ Availability.prototype.getUnavailableAt = function(date) {
   for (var x in this.unavailable[dateKey][hourKey]) {
     // Convinience variable.
     var timeNotAvailable = this.unavailable[dateKey][hourKey][x];
-
+    
     // if the start time falls between the start and end time then they are unavailable
-    if (date.isBetween(timeNotAvailable['start'], timeNotAvailable['end'], 'minutes','[)')) {
+    if (date.isBetween(timeNotAvailable['start'], timeNotAvailable['end'], 'seconds','[)')) {
       unavailable.push(timeNotAvailable);
     }
   }
