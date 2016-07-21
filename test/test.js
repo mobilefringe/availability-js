@@ -119,11 +119,17 @@ function testIsUnavailable() {
   av.setRegularHours(seeds.threeDays);
 
   av.addUnavailable('2016-06-21');
-  
+  av.addUnavailable('2016-06-22 12:00', '2016-06-22 14:30');
   // Test that unavailable for day
   assert.equal(av.isUnavailableAt('2016-06-24'), false);
   assert.equal(av.isUnavailableAt('2016-06-21'), true);
   assert.equal(av.isUnavailableAt('2016-06-21 15:00'), true);
+  assert.equal(av.isUnavailableAt('2016-06-22 13:00'), true);
+  assert.equal(av.isUnavailableAt('2016-06-22 14:30'), false);
+  assert.equal(av.isUnavailableAt('2016-06-22 12:15'), true);
+  assert.equal(av.isUnavailableAt('2016-06-22 12:30'), true);
+  assert.equal(av.isUnavailableAt('2016-06-22 11:45'), false);
+  assert.equal(av.isUnavailableAt('2016-06-22 11:49'), false);
 }
 
 function testOutForDayAppointments() {
