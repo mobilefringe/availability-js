@@ -201,14 +201,14 @@ function testIncludeUnavailableNotes() {
   assert.equal(hours['2016-06-20'][5]['unavailable'].length, 2);
 }
 
-// testRegularHours();
-// testNumericDays();
-// test15MinuteInterval();
-// testUnavailableSingleDay();
-// testUnavailableRanges();
-// testIsUnavailable();
-// testOutForDayAppointments();
-// testUnavailableForBlock();
+testRegularHours();
+testNumericDays();
+test15MinuteInterval();
+testUnavailableSingleDay();
+testUnavailableRanges();
+testIsUnavailable();
+testOutForDayAppointments();
+testUnavailableForBlock();
 testIncludeUnavailable();
-// testIncludeUnavailableNotes();
+testIncludeUnavailableNotes();
 // testRegularHoursWithDates();
