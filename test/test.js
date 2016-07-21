@@ -7,7 +7,7 @@ var seeds = {
   "threeDays" : require("./seeds/threeDays.json"),
   "threeDaysNumeric" : require("./seeds/threeDaysNumeric.json"),
   "testRegularHours" : require("./seeds/testRegularHours"),
-  "testRegularHoursWithDates" : require("./seeds/testRegularHoursWithDates"),
+  // "testRegularHoursWithDates" : require("./seeds/testRegularHoursWithDates"),
   'test15MinuteInterval' : require("./seeds/test15MinuteInterval"),
   'testUnavailableForBlocks' : require("./seeds/testUnavailableForBlocks"),
   'testIncludeUnavailable' : require("./seeds/testIncludeUnavailable"),
@@ -199,4 +199,4 @@ testOutForDayAppointments();
 testUnavailableForBlock();
 testIncludeUnavailable();
 testIncludeUnavailableNotes();
-testRegularHoursWithDates();
+// testRegularHoursWithDates();
