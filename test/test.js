@@ -1,6 +1,6 @@
 var Availability = require("../availability.js");
 var assert = require("assert");
-var moment = require('moment-timezone');
+var moment = require('moment');
 var util = require('util');
 
 var seeds = {
@@ -29,11 +29,10 @@ function testRegularHours(){
 function testRegularHoursWithDates(){
   av = new Availability();
   av.setRegularHours(seeds.threeDays);
-  // av.setTimezone('UTC');
 
   hours = av.getAvailability("2016-06-20", "2016-06-24", {returnDates: true});
-  
   expected = seeds.testRegularHoursWithDates;
+  console.log(expected);
   assert.deepEqual(hours, expected, "Times returned didn't match expected");
 }
 
@@ -135,7 +134,6 @@ function testOutForDayAppointments() {
 
   // Test out for day  
   hours = av.getAvailability("2016-06-21", "2016-06-24");
-  
   assert.strictEqual(hours['2016-06-21'], undefined);
 }
 
@@ -183,27 +181,12 @@ function testIncludeUnavailableNotes() {
 
   // Test out for day 
   hours = av.getAvailability("2016-06-20", "2016-06-24");
-
+  
   assert.notEqual(hours['2016-06-20'][3]['unavailable'], undefined);
   assert.equal(hours['2016-06-20'][3]['unavailable'][0]['details'], 'holiday');
   assert.notEqual(hours['2016-06-20'][3]['unavailable'], undefined);
   assert.equal(hours['2016-06-20'][4]['unavailable'].length, 1);
   assert.equal(hours['2016-06-20'][5]['unavailable'].length, 2);
-}
-
-function testMethodUnavailableAt() {
-  av = new Availability();
-  av.setRegularHours(seeds.threeDays);
-
-  av.addUnavailable('2016-06-21');
-  unavailable = av.getUnavailableAt(moment('2016-06-21 12:00'));
-
-  // Test out for day  
-  assert.equal(unavailable.length > 0, true);
-  av.addUnavailable('2016-06-20 12:15', '2016-06-20 14:15');
-
-  unavailable = av.getUnavailableAt('2016-06-20 12:30');
-  assert.equal(unavailable.length > 0, true);
 }
 
 testRegularHours();
@@ -217,4 +200,3 @@ testUnavailableForBlock();
 testIncludeUnavailable();
 testIncludeUnavailableNotes();
 testRegularHoursWithDates();
-testMethodUnavailableAt();
