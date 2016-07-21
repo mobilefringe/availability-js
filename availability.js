@@ -279,7 +279,7 @@ Availability.prototype.getUnavailableAt = function(date) {
     var timeNotAvailable = this.unavailable[dateKey][hourKey][x];
 
     // if the start time falls between the start and end time then they are unavailable
-    if (date.isBetween(timeNotAvailable['start'], timeNotAvailable['end'], 'minutes','[]')) {
+    if (date.isBetween(timeNotAvailable['start'], timeNotAvailable['end'], 'minutes','[)')) {
       unavailable.push(timeNotAvailable);
     }
   }
