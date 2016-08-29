@@ -135,14 +135,16 @@ Availability.prototype.addUnavailable = function(startTime, endTime, details) {
  * @param {string} startDate - A date time that can be parsed by Moment.js
  * @param {string} endDate - A datetime that can be parsed by Moment.js
  * @param {Object} options - Option boject
- * @param {boolean} options.returnDates - Return js date objects with the time array.
+ * @param {boolean} options.dates - Return js date objects with the time array.
+ * @param {boolean} options.availableUntil - Return iso string indicating when next unavailable time is.
  * @return {Object} Returns a hash object between the start date and end date,
  *  with available times for each date.
  */
 Availability.prototype.getAvailability = function(startDate, endDate, options) {
 
   var defaults = {
-    'returnDates' : false
+    'dates' : false,
+    'availableUntil': false
   };
 
   options = _.extend(defaults, options);
@@ -150,6 +152,17 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
   startDate = moment(startDate);
   currentDate = moment(startDate);
   availableDateTimes = {};
+  // Use this object to pass by reference.
+  availableUntilReferences = {value:null};
+
+
+  // var timeLoopFinish = function(startTime) {
+  //   if (options['availableUntil']) {
+
+  //   };
+  // };
+
+
 
   // Loop from the start/date time to enddate time.
   while (currentDate.isBefore(endDate)){
@@ -175,13 +188,18 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
     endOfDay.hour(endTime.hour()).minute(endTime.minute());
         
     var times = [];
-    
+    var nextUnavailableAt = {'time' : null};
+
     while (currentDate.isBefore(endOfDay)) {
       var startFinish = {};
 
       // Test to see that there's no existing appointment at this time.
       var tmpUnavailableAt = this.getUnavailableAt(currentDate);
       if (tmpUnavailableAt.length > 0) {
+        nextUnavailableAt['time'] = tmpUnavailableAt[0]['start'].toISOString();
+        nextUnavailableAt = {'time' : null};
+
+        availableUntilReferences['value'] = currentDate.toDate();
         if (this.includeUnavailable) {
           startFinish['unavailable'] = tmpUnavailableAt;
         } else {
@@ -189,11 +207,16 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
           continue;
         }
       }
+
       startFinish['start'] = currentDate.format("HH:mm");
       startFinish['end'] = null;
 
-      if (options['returnDates']) {
-        startFinish['startDate'] = currentDate.toDate();
+      if (options['availableUntil']) { 
+        startFinish['availableUntil'] = nextUnavailableAt;
+      }
+
+      if (options['dates']) {
+        startFinish['startDate'] = currentDate.toISOString();
       }
       
       // Move the time forward to our end time.
@@ -202,9 +225,11 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
       // Test to see that our end time - 1 second doesn't overlap with any appointment either.
       var tmpCurrentEndTime = moment(currentDate);
       tmpCurrentEndTime.subtract(1, 'second');
-      
       tmpUnavailableAt = this.getUnavailableAt(tmpCurrentEndTime);
       if (tmpUnavailableAt.length > 0) {
+        nextUnavailableAt['time'] = tmpUnavailableAt[0]['start'].toISOString();
+        nextUnavailableAt = {'time' : null};
+
         if (this.includeUnavailable) {
           // If it hasn't yet been set make it an array.
           if (startFinish['unavailable'] === undefined){
@@ -235,14 +260,17 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
       startFinish.end = currentDate.format("HH:mm");
 
       // Add time to our availability.
-      if (options['returnDates']) {
-        startFinish.endDate = currentDate.toDate();
+      if (options['dates']) {
+        startFinish.endDate = currentDate.toISOString();
       }
 
       // Add time to our array of available times
       times.push(startFinish);
     }
     
+    nextUnavailableAt['time'] = currentDate.toISOString();
+
+
     // If times is not empty let's add it to our array.
     if (times.length > 0) {
       availableDateTimes[dateKey] = times;

@@ -3,15 +3,18 @@ var assert = require("assert");
 var moment = require('moment');
 var util = require('util');
 
+process.env.TZ = 'Etc/UTC';
+
 var seeds = {
   "threeDays" : require("./seeds/threeDays.json"),
   "threeDaysNumeric" : require("./seeds/threeDaysNumeric.json"),
   "testRegularHours" : require("./seeds/testRegularHours"),
-  // "testRegularHoursWithDates" : require("./seeds/testRegularHoursWithDates"),
+  "testRegularHoursWithDates" : require("./seeds/testRegularHoursWithDates"),
   'test15MinuteInterval' : require("./seeds/test15MinuteInterval"),
   'testUnavailableForBlocks' : require("./seeds/testUnavailableForBlocks"),
   'testIncludeUnavailable' : require("./seeds/testIncludeUnavailable"),
-  'testIncludeUnavailableNotes': require("./seeds/testIncludeUnavailableNotes")
+  'testIncludeUnavailableNotes': require("./seeds/testIncludeUnavailableNotes"),
+  'testUnavailableUntil': require("./seeds/testAvailableUntil")
 };
 
 // test sunny case let's just test regular scheduled hours.
@@ -21,7 +24,7 @@ function testRegularHours(){
 
   hours = av.getAvailability("2016-06-20", "2016-06-24");
   expected = seeds.testRegularHours;
-
+  
   assert.deepEqual(hours, expected, "Times returned didn't match expected");
 }
 
@@ -30,9 +33,9 @@ function testRegularHoursWithDates(){
   av = new Availability();
   av.setRegularHours(seeds.threeDays);
 
-  hours = av.getAvailability("2016-06-20", "2016-06-24", {returnDates: true});
+  hours = av.getAvailability("2016-06-20", "2016-06-24", {dates: true});
   expected = seeds.testRegularHoursWithDates;
-  console.log(expected);
+  
   assert.deepEqual(hours, expected, "Times returned didn't match expected");
 }
 
@@ -201,6 +204,21 @@ function testIncludeUnavailableNotes() {
   assert.equal(hours['2016-06-20'][5]['unavailable'].length, 2);
 }
 
+function testAvailableUntil() {
+
+  av = new Availability();
+  av.setRegularHours(seeds.threeDays);
+  av.setInterval(15);
+
+  av.addUnavailable('2016-06-20 11:15', '2016-06-20 13:15', 'holiday');
+  av.addUnavailable('2016-06-20 15:30', '2016-06-20 16:30', {'name': 'wtf brah'});
+  // av.setIncludeUnavailable(true);
+
+  hours = av.getAvailability("2016-06-20", "2016-06-24", {availableUntil: true});
+  expected = seeds.testUnavailableUntil;
+  assert.deepEqual(hours, expected, "Times returned didn't match expected");
+}
+
 testRegularHours();
 testNumericDays();
 test15MinuteInterval();
@@ -211,4 +229,5 @@ testOutForDayAppointments();
 testUnavailableForBlock();
 testIncludeUnavailable();
 testIncludeUnavailableNotes();
-// testRegularHoursWithDates();
+testRegularHoursWithDates();
+testAvailableUntil();
