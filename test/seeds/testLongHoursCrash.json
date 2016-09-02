@@ -1,0 +1,177 @@
+[ 
+    {
+        "name" : "Labour Day",
+        "isFullDay" : true,
+        "startDateTime" : "2016-09-05T04:00:00.000Z",
+        "endDateTime" : "2016-09-05T04:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602a8"
+    }, 
+    {
+        "name" : "Columbus Day",
+        "isFullDay" : true,
+        "startDateTime" : "2016-10-10T04:00:00.000Z",
+        "endDateTime" : "2016-10-10T04:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602a9"
+    }, 
+    {
+        "name" : "Veterans Day",
+        "isFullDay" : true,
+        "startDateTime" : "2016-11-11T05:00:00.000Z",
+        "endDateTime" : "2016-11-11T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602aa"
+    }, 
+    {
+        "name" : "Thanksgiving Day",
+        "isFullDay" : true,
+        "startDateTime" : "2016-11-24T05:00:00.000Z",
+        "endDateTime" : "2016-11-24T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602ab"
+    }, 
+    {
+        "name" : "Christmas Day",
+        "isFullDay" : true,
+        "startDateTime" : "2016-12-25T05:00:00.000Z",
+        "endDateTime" : "2016-12-25T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602ac"
+    }, 
+    {
+        "name" : "Christmas Day (substitute day)",
+        "isFullDay" : true,
+        "startDateTime" : "2016-12-26T05:00:00.000Z",
+        "endDateTime" : "2016-12-26T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602ad"
+    }, 
+    {
+        "name" : "New Year's Day",
+        "isFullDay" : true,
+        "startDateTime" : "2017-01-01T05:00:00.000Z",
+        "endDateTime" : "2017-01-01T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602ae"
+    }, 
+    {
+        "name" : "New Year's Day (substitute day)",
+        "isFullDay" : true,
+        "startDateTime" : "2017-01-02T05:00:00.000Z",
+        "endDateTime" : "2017-01-02T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602af"
+    }, 
+    {
+        "name" : "Martin Luther King Day",
+        "isFullDay" : true,
+        "startDateTime" : "2017-01-16T05:00:00.000Z",
+        "endDateTime" : "2017-01-16T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602b0"
+    }, 
+    {
+        "name" : "Washington’s Birthday",
+        "isFullDay" : true,
+        "startDateTime" : "2017-02-20T05:00:00.000Z",
+        "endDateTime" : "2017-02-20T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602b1"
+    }, 
+    {
+        "name" : "Memorial Day",
+        "isFullDay" : true,
+        "startDateTime" : "2017-05-29T04:00:00.000Z",
+        "endDateTime" : "2017-05-29T04:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602b2"
+    }, 
+    {
+        "name" : "Independence Day",
+        "isFullDay" : true,
+        "startDateTime" : "2017-07-04T04:00:00.000Z",
+        "endDateTime" : "2017-07-04T04:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602b3"
+    }, 
+    {
+        "name" : "Labour Day",
+        "isFullDay" : true,
+        "startDateTime" : "2016-09-05T04:00:00.000Z",
+        "endDateTime" : "2016-09-05T04:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602a8"
+    }, 
+    {
+        "name" : "Columbus Day",
+        "isFullDay" : true,
+        "startDateTime" : "2016-10-10T04:00:00.000Z",
+        "endDateTime" : "2016-10-10T04:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602a9"
+    }, 
+    {
+        "name" : "Veterans Day",
+        "isFullDay" : true,
+        "startDateTime" : "2016-11-11T05:00:00.000Z",
+        "endDateTime" : "2016-11-11T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602aa"
+    }, 
+    {
+        "name" : "Thanksgiving Day",
+        "isFullDay" : true,
+        "startDateTime" : "2016-11-24T05:00:00.000Z",
+        "endDateTime" : "2016-11-24T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602ab"
+    }, 
+    {
+        "name" : "Christmas Day",
+        "isFullDay" : true,
+        "startDateTime" : "2016-12-25T05:00:00.000Z",
+        "endDateTime" : "2016-12-25T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602ac"
+    }, 
+    {
+        "name" : "Christmas Day (substitute day)",
+        "isFullDay" : true,
+        "startDateTime" : "2016-12-26T05:00:00.000Z",
+        "endDateTime" : "2016-12-26T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602ad"
+    }, 
+    {
+        "name" : "New Year's Day",
+        "isFullDay" : true,
+        "startDateTime" : "2017-01-01T05:00:00.000Z",
+        "endDateTime" : "2017-01-01T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602ae"
+    }, 
+    {
+        "name" : "New Year's Day (substitute day)",
+        "isFullDay" : true,
+        "startDateTime" : "2017-01-02T05:00:00.000Z",
+        "endDateTime" : "2017-01-02T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602af"
+    }, 
+    {
+        "name" : "Martin Luther King Day",
+        "isFullDay" : true,
+        "startDateTime" : "2017-01-16T05:00:00.000Z",
+        "endDateTime" : "2017-01-16T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602b0"
+    }, 
+    {
+        "name" : "Washington’s Birthday",
+        "isFullDay" : true,
+        "startDateTime" : "2017-02-20T05:00:00.000Z",
+        "endDateTime" : "2017-02-20T05:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602b1"
+    }, 
+    {
+        "name" : "Memorial Day",
+        "isFullDay" : true,
+        "startDateTime" : "2017-05-29T04:00:00.000Z",
+        "endDateTime" : "2017-05-29T04:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602b2"
+    }, 
+    {
+        "name" : "Independence Day",
+        "isFullDay" : true,
+        "startDateTime" : "2017-07-04T04:00:00.000Z",
+        "endDateTime" : "2017-07-04T04:00:00.000Z",
+        "_id" : "57c8ab5ecd5645e4f55602b3"
+    }, 
+    {
+        "name" : "Time Off",
+        "isFullDay" : true,
+        "startDateTime" : "2016-09-02T02:15:27.295Z",
+        "endDateTime" : "2017-05-01T04:00:00.000Z",
+        "_id" : "57c8e0ce36f980a9feb60e0d"
+    }
+]

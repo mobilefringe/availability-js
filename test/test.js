@@ -7,6 +7,7 @@ process.env.TZ = 'Etc/UTC';
 
 var seeds = {
   "threeDays" : require("./seeds/threeDays.json"),
+  "fiveDays" : require("./seeds/fiveDays.json"),
   "threeDaysNumeric" : require("./seeds/threeDaysNumeric.json"),
   "testRegularHours" : require("./seeds/testRegularHours"),
   "testRegularHoursWithDates" : require("./seeds/testRegularHoursWithDates"),
@@ -14,7 +15,8 @@ var seeds = {
   'testUnavailableForBlocks' : require("./seeds/testUnavailableForBlocks"),
   'testIncludeUnavailable' : require("./seeds/testIncludeUnavailable"),
   'testIncludeUnavailableNotes': require("./seeds/testIncludeUnavailableNotes"),
-  'testUnavailableUntil': require("./seeds/testAvailableUntil")
+  'testUnavailableUntil': require("./seeds/testAvailableUntil"),
+  'testLongHoursCrash' : require("./seeds/testLongHoursCrash")
 };
 
 // test sunny case let's just test regular scheduled hours.
@@ -219,6 +221,39 @@ function testAvailableUntil() {
   assert.deepEqual(hours, expected, "Times returned didn't match expected");
 }
 
+
+function testLongHolidaysCrashCase() {
+  process.env.TZ = 'America/Toronto';
+
+  av = new Availability();
+  av.setRegularHours(seeds.fiveDays);
+  av.setIncludeUnavailable(true);
+  av.setInterval(15);
+
+  seeds.testLongHoursCrash.forEach(function(record){
+    var startTime = moment(record.startDateTime);
+    var endTime = moment(record.endDateTime);
+    var details = {
+        "_type" : 'scheduled',
+        "details" : record
+    };
+
+    // console.log('adding time off row:', record);
+    if (record.isFullDay) {
+        av.addUnavailable(startTime.startOf('day'), endTime.endOf('day'), details);
+    } else {
+        av.addUnavailable(record.startDateTime, record.endDateTime, details);
+    }
+
+  });
+
+  hours = av.getAvailability("2016-07-01", "2017-01-31", {availableUntil: true, dates: true});
+
+  // Test that we got here without incident;
+  assert(true);
+  process.env.TZ = 'Etc/UTC';
+}
+
 testRegularHours();
 testNumericDays();
 test15MinuteInterval();
@@ -231,3 +266,4 @@ testIncludeUnavailable();
 testIncludeUnavailableNotes();
 testRegularHoursWithDates();
 testAvailableUntil();
+testLongHolidaysCrashCase();

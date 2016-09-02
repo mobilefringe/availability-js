@@ -121,11 +121,18 @@ Availability.prototype.addUnavailable = function(startTime, endTime, details) {
     // @TODO could probably make this method more efficent by removing overlapping.
     // elements - this does cost this function more cycles though - so may not be as efficiant 
     // as we'd want.
-
+    var oldTime = moment(currentTime);
+    
     // Move current start time up by an hour.
     currentTime.add(1, 'hour').startOf('hour');
-  }
 
+    var newTime = moment(currentTime);
+
+    // Hit our timezone bug.
+    if (oldTime.isSame(newTime)) {
+      currentTime.add(2, 'hour').startOf('hour');
+    }
+  }
 
   return this;
 };
