@@ -143,7 +143,7 @@ Availability.prototype.addUnavailable = function(startTime, endTime, details) {
  * @param {string} endDate - A datetime that can be parsed by Moment.js
  * @param {Object} options - Option boject
  * @param {boolean} options.dates - Return js date objects with the time array.
- * @param {boolean} options.availableUntil - Return iso string indicating when next unavailable time is.
+ * @param {boolean} options.nextUnavailableAt - Return iso string indicating when next unavailable time is.
  * @return {Object} Returns a hash object between the start date and end date,
  *  with available times for each date.
  */
@@ -151,7 +151,7 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
 
   var defaults = {
     'dates' : false,
-    'availableUntil': false
+    'nextUnavailableAt': false
   };
 
   options = _.extend(defaults, options);
@@ -176,6 +176,7 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
     // Check if the user has regular hours set for this date.
     var dayOfTheWeekKey = currentDate.format("d");
     var regularHours = null;
+    var lastUnavailable = null;
 
     if ((regularHours = this.regularHours[dayOfTheWeekKey]) === undefined) {
       // If no regular hours are set for this day, let's move forward 24 hours.
@@ -203,8 +204,14 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
       // Test to see that there's no existing appointment at this time.
       var tmpUnavailableAt = this.getUnavailableAt(currentDate);
       if (tmpUnavailableAt.length > 0) {
-        nextUnavailableAt['time'] = tmpUnavailableAt[0]['start'].toISOString();
-        nextUnavailableAt = {'time' : null};
+        if (!lastUnavailable || (lastUnavailable.__availabilityId !== tmpUnavailableAt[0].__availabilityId)) {        
+          // If unavilable then next un
+          nextUnavailableAt['time'] = tmpUnavailableAt[0]['start'].toISOString();
+          nextUnavailableAt = {'time' : null};
+          lastUnavailable = tmpUnavailableAt[0];
+        }
+
+        
 
         availableUntilReferences['value'] = currentDate.toDate();
         if (this.includeUnavailable) {
@@ -218,8 +225,8 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
       startFinish['start'] = currentDate.format("HH:mm");
       startFinish['end'] = null;
 
-      if (options['availableUntil']) { 
-        startFinish['availableUntil'] = nextUnavailableAt;
+      if (options['nextUnavailableAt']) { 
+        startFinish['nextUnavailableAt'] = nextUnavailableAt;
       }
 
       if (options['dates']) {
@@ -234,8 +241,14 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
       tmpCurrentEndTime.subtract(1, 'second');
       tmpUnavailableAt = this.getUnavailableAt(tmpCurrentEndTime);
       if (tmpUnavailableAt.length > 0) {
-        nextUnavailableAt['time'] = tmpUnavailableAt[0]['start'].toISOString();
-        nextUnavailableAt = {'time' : null};
+        // If the current time is unavilable we need to find the next unavailable time to include.
+        if (!lastUnavailable || (lastUnavailable.__availabilityId !== tmpUnavailableAt[0].__availabilityId)) {
+          nextUnavailableAt['time'] = tmpUnavailableAt[0]['start'].toISOString();
+          nextUnavailableAt = {'time' : null};
+          lastUnavailable = tmpUnavailableAt[0];
+        }
+
+        
 
         if (this.includeUnavailable) {
           // If it hasn't yet been set make it an array.

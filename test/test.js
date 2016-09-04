@@ -214,11 +214,12 @@ function testAvailableUntil() {
 
   av.addUnavailable('2016-06-20 11:15', '2016-06-20 13:15', 'holiday');
   av.addUnavailable('2016-06-20 15:30', '2016-06-20 16:30', {'name': 'wtf brah'});
-  // av.setIncludeUnavailable(true);
+  av.setIncludeUnavailable(true);
 
-  hours = av.getAvailability("2016-06-20", "2016-06-24", {availableUntil: true});
+  hours = av.getAvailability("2016-06-20", "2016-06-24", {nextUnavailableAt: true});
+
   expected = seeds.testUnavailableUntil;
-  assert.deepEqual(hours, expected, "Times returned didn't match expected");
+  assert.deepEqual(JSON.parse(JSON.stringify(hours)), expected, "Times returned didn't match expected");
 }
 
 
@@ -238,7 +239,6 @@ function testLongHolidaysCrashCase() {
         "details" : record
     };
 
-    // console.log('adding time off row:', record);
     if (record.isFullDay) {
         av.addUnavailable(startTime.startOf('day'), endTime.endOf('day'), details);
     } else {
