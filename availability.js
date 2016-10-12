@@ -1,4 +1,4 @@
-var moment = require('moment');
+var moment = require('moment-timezone');
 var _ = require('underscore');
 
 // Guide to errors more as a reference.
@@ -144,6 +144,7 @@ Availability.prototype.addUnavailable = function(startTime, endTime, details) {
  * @param {Object} options - Option boject
  * @param {boolean} options.dates - Return js date objects with the time array.
  * @param {boolean} options.nextUnavailableAt - Return iso string indicating when next unavailable time is.
+ * @param {string} options.timeZone - The timezone to adjust availability for.
  * @return {Object} Returns a hash object between the start date and end date,
  *  with available times for each date.
  */
@@ -151,13 +152,14 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
 
   var defaults = {
     'dates' : false,
-    'nextUnavailableAt': false
+    'nextUnavailableAt': false,
+    'timeZone' : 'UTC'
   };
 
   options = _.extend(defaults, options);
 
-  startDate = moment(startDate);
-  currentDate = moment(startDate);
+  startDate = moment.tz(startDate, options.timeZone);
+  currentDate = moment.tz(startDate, options.timeZone);
   availableDateTimes = {};
   // Use this object to pass by reference.
   availableUntilReferences = {value:null};
@@ -188,8 +190,8 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
     var dateKey = currentDate.format("Y-MM-DD");
     
     // Parse our regular hour times into times and start calculating time from the start time up until the end of the day.
-    var startTime = moment(regularHours.start, "HH:mm");
-    var endTime = moment(regularHours.end, "HH:mm");
+    var startTime = moment.tz(regularHours.start, "HH:mm", options.timeZone);
+    var endTime = moment.tz(regularHours.end, "HH:mm", options.timeZone);
     var endOfDay = moment(currentDate);
     
     currentDate.hour(startTime.hour()).minute(startTime.minute());
@@ -210,8 +212,6 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
           nextUnavailableAt = {'time' : null};
           lastUnavailable = tmpUnavailableAt[0];
         }
-
-        
 
         availableUntilReferences['value'] = currentDate.toDate();
         if (this.includeUnavailable) {

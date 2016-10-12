@@ -11,6 +11,7 @@ var seeds = {
   "threeDaysNumeric" : require("./seeds/threeDaysNumeric.json"),
   "testRegularHours" : require("./seeds/testRegularHours"),
   "testRegularHoursWithDates" : require("./seeds/testRegularHoursWithDates"),
+  "testRegularHoursWithDatesTimeZone" : require("./seeds/testRegularHoursWithDatesTimeZone"),
   'test15MinuteInterval' : require("./seeds/test15MinuteInterval"),
   'testUnavailableForBlocks' : require("./seeds/testUnavailableForBlocks"),
   'testIncludeUnavailable' : require("./seeds/testIncludeUnavailable"),
@@ -41,6 +42,17 @@ function testRegularHoursWithDates(){
   assert.deepEqual(hours, expected, "Times returned didn't match expected");
 }
 
+function testRegularHoursWithDatesTimeZone() {
+  av = new Availability();
+  av.setRegularHours(seeds.threeDays);
+
+  hours = av.getAvailability("2016-06-20", "2016-06-24", {dates: true, timeZone: 'US/Pacific'});
+  expected = seeds.testRegularHoursWithDatesTimeZone;
+  
+  assert.deepEqual(hours, expected, "Times returned didn't match expected");
+  
+}
+
 function testNumericDays() {
   av = new Availability();
   av.setRegularHours(seeds.threeDaysNumeric);
@@ -49,8 +61,7 @@ function testNumericDays() {
   expected = seeds.testRegularHours;
 
   assert.deepEqual(hours, expected, "Times returned didn't match expected");
-
-}
+ }
 
 // test setting an interval for 15 minutes passes
 function test15MinuteInterval(){
@@ -265,5 +276,6 @@ testUnavailableForBlock();
 testIncludeUnavailable();
 testIncludeUnavailableNotes();
 testRegularHoursWithDates();
+testRegularHoursWithDatesTimeZone();
 testAvailableUntil();
 testLongHolidaysCrashCase();
