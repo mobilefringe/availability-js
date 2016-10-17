@@ -14,6 +14,7 @@ var seeds = {
   "testRegularHoursWithDatesTimeZone" : require("./seeds/testRegularHoursWithDatesTimeZone"),
   'test15MinuteInterval' : require("./seeds/test15MinuteInterval"),
   'testUnavailableForBlocks' : require("./seeds/testUnavailableForBlocks"),
+  'testUnavailableForBlocksWithTimeZone' : require("./seeds/testUnavailableForBlocksWithTimeZone"),
   'testIncludeUnavailable' : require("./seeds/testIncludeUnavailable"),
   'testIncludeUnavailableNotes': require("./seeds/testIncludeUnavailableNotes"),
   'testUnavailableUntil': require("./seeds/testAvailableUntil"),
@@ -159,6 +160,38 @@ function testOutForDayAppointments() {
   assert.strictEqual(hours['2016-06-21'], undefined);
 }
 
+function testOutForDayAppointmentsWithTimeZone() {
+  av = new Availability();
+  av.setRegularHours(seeds.threeDays);
+
+  var day = moment.tz('2016-06-21', 'US/Pacific');
+  av.addUnavailable(day);
+
+  // Test out for single day  
+  hours = av.getAvailability("2016-06-21", "2016-06-24", {'timeZone': 'US/Pacific'});
+  assert.strictEqual(hours['2016-06-21'], undefined, 'Hours found - should not be defined.');
+
+}
+
+
+function testOutForMultipleDaysWithTimeZones() {
+  // Test Ranges
+  av = new Availability();
+  av.setRegularHours(seeds.threeDays);
+
+  var startDay = moment.tz('2016-06-21', 'US/Pacific');
+  var endDay = moment.tz('2016-06-23', 'US/Pacific');
+
+  av.addUnavailable(startDay, endDay, 'Busy');
+
+  hours = av.getAvailability("2016-06-21", "2016-06-24", {'timeZone': 'US/Pacific'});
+  
+  assert.strictEqual(hours['2016-06-21'], undefined, 'Hours found - should not be defined.');
+  assert.strictEqual(hours['2016-06-22'], undefined, 'Hours found - should not be defined.');
+  assert.strictEqual(hours['2016-06-23'], undefined, 'Hours found - should not be defined.');
+
+}
+
 function testUnavailableForBlock() {
 
   av = new Availability();
@@ -173,6 +206,30 @@ function testUnavailableForBlock() {
   // console.log(av.getUnavailableAt('2016-06-20 13:59'));
   assert.deepEqual(hours, seeds['testUnavailableForBlocks']);
 }
+
+function testUnavailableForBlockWithTimeZone() {
+
+  av = new Availability();
+  av.setRegularHours(seeds.threeDays);
+  av.setIncludeUnavailable(true);
+
+  av.addUnavailable('2016-06-21 13:30', '2016-06-21 15:30');
+  av.addUnavailable('2016-06-20 12:15', '2016-06-20 14:15');
+  av.addUnavailable(
+    moment.tz('2016-06-21 13:30', 'US/Pacific'),
+    moment.tz('2016-06-21 15:30', 'US/Pacific'));
+
+  // Test out for day 
+  hours = av.getAvailability("2016-06-20", "2016-06-24", 
+    {
+      'timeZone' : 'US/Pacific'
+    }
+  );
+
+  assert.deepEqual(JSON.parse( JSON.stringify(hours)), 
+                   JSON.parse( JSON.stringify(seeds['testUnavailableForBlocksWithTimeZone']) ));
+}
+
 
 function testIncludeUnavailable() {
   av = new Availability();
@@ -265,17 +322,20 @@ function testLongHolidaysCrashCase() {
   process.env.TZ = 'Etc/UTC';
 }
 
-testRegularHours();
-testNumericDays();
-test15MinuteInterval();
-testUnavailableSingleDay();
-testUnavailableRanges();
-testIsUnavailable();
-testOutForDayAppointments();
-testUnavailableForBlock();
-testIncludeUnavailable();
-testIncludeUnavailableNotes();
-testRegularHoursWithDates();
-testRegularHoursWithDatesTimeZone();
-testAvailableUntil();
-testLongHolidaysCrashCase();
+// testRegularHours();
+// testNumericDays();
+// test15MinuteInterval();
+// testUnavailableSingleDay();
+// testUnavailableRanges();
+// testIsUnavailable();
+// testOutForDayAppointments();
+// testOutForDayAppointmentsWithTimeZone();
+// testUnavailableForBlock();
+// testUnavailableForBlockWithTimeZone();
+// testIncludeUnavailable();
+// testIncludeUnavailableNotes();
+// testRegularHoursWithDates();
+// testRegularHoursWithDatesTimeZone();
+// testAvailableUntil();
+// testLongHolidaysCrashCase();
+testOutForMultipleDaysWithTimeZones();
