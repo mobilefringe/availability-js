@@ -6,6 +6,10 @@
   "scripts": {
     "test": "node test/test.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mobilefringe/availability-js"
+  },
   "keywords": [
     "scheduling",
     "availability",

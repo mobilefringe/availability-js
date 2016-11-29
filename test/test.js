@@ -19,7 +19,8 @@ var seeds = {
   'testIncludeUnavailableNotes': require("./seeds/testIncludeUnavailableNotes"),
   'testUnavailableUntil': require("./seeds/testAvailableUntil"),
   'testLongHoursCrash' : require("./seeds/testLongHoursCrash"),
-  'testRegularHoursFullDay': require("./seeds/testRegularHoursFullDay")
+  'testRegularHoursFullDay': require("./seeds/testRegularHoursFullDay"),
+  'testRegularHoursFullDayFullWeek': require("./seeds/testRegularHoursFullDayFullWeek")
 };
 
 // test sunny case let's just test regular scheduled hours.
@@ -339,6 +340,23 @@ function testRegularHoursFullDay() {
 
 }
 
+function testRegularHoursFullDayFullWeek() {
+  av = new Availability();
+  av.setRegularHours(seeds.threeDays);
+
+  hours = av.getAvailability("2016-06-20", "2016-06-27", 
+    {
+      dates: true,
+      includeFullDay: true
+    }
+  );
+  
+  expected = seeds.testRegularHoursFullDayFullWeek;
+  assert.deepEqual(hours, expected, "Times returned didn't match expected");
+
+}
+
+
 testRegularHours();
 testNumericDays();
 test15MinuteInterval();
@@ -357,3 +375,4 @@ testAvailableUntil();
 testLongHolidaysCrashCase();
 testOutForMultipleDaysWithTimeZones();
 testRegularHoursFullDay();
+testRegularHoursFullDayFullWeek();

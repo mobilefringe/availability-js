@@ -219,22 +219,18 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
         var tmpStartDateTime = moment(currentDate);
         var tmpEndDateTime = moment(currentDate);
 
-        // query // parse the hour minute from string.
-        var tmpStart = moment.tz(scheduledAvailability.start, "HH:mm", options.timeZone);
-        var tmpEnd = moment.tz(scheduledAvailability.end, 'HH:mm', options.timeZone);
+        if (scheduledAvailability) {
+          // query // parse the hour minute from string.
+          var tmpStart = moment.tz(scheduledAvailability.start, "HH:mm", options.timeZone);
+          var tmpEnd = moment.tz(scheduledAvailability.end, 'HH:mm', options.timeZone);
 
-        tmpStartDateTime.set({'hour': tmpStart.hour(), 'minute' : tmpStart.minute(), 'second': 0, 'millisecond' : 0});
-        tmpEndDateTime.set({'hour': tmpEnd.hour(), 'minute' : tmpEnd.minute(), 'second': 0, 'millisecond' : 0});
-        // console.log('tt --', scheduledAvailability);
-        // console.log('ct --', currentDate.toISOString());
-        // console.log('ts --', tmpStartDateTime.toISOString());
-        // console.log('te --', tmpEndDateTime.toISOString());
-        // console.log('ib -', currentDate.isBetween(tmpStart, tmpEnd));
+          tmpStartDateTime.set({'hour': tmpStart.hour(), 'minute' : tmpStart.minute(), 'second': 0, 'millisecond' : 0});
+          tmpEndDateTime.set({'hour': tmpEnd.hour(), 'minute' : tmpEnd.minute(), 'second': 0, 'millisecond' : 0});
 
-        if (scheduledAvailability !== null && currentDate.isBetween(tmpStartDateTime, tmpEndDateTime, 'minute', '[)')) {
-          startFinish['isScheduledTime'] = true;
+          if (currentDate.isBetween(tmpStartDateTime, tmpEndDateTime, 'minute', '[)')) {
+            startFinish['isScheduledTime'] = true;
+          }
         }
-
       }
 
       // Test to see that there's no existing appointment at this time.
