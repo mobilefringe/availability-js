@@ -141,10 +141,11 @@ Availability.prototype.addUnavailable = function(startTime, endTime, details) {
  * Returns all time availability based on interval for a given timeframe.
  * @param {string} startDate - A date time that can be parsed by Moment.js
  * @param {string} endDate - A datetime that can be parsed by Moment.js
- * @param {Object} options - Option boject
+ * @param {Object}  options - Option boject
  * @param {boolean} options.dates - Return js date objects with the time array.
  * @param {boolean} options.nextUnavailableAt - Return iso string indicating when next unavailable time is.
- * @param {string} options.timeZone - The timezone to adjust availability for.
+ * @param {string}  options.timeZone - The timezone to adjust availability for.
+ * @param {boolean} options.includeFullDay - Returns all time in a day, but marks availability time.
  * @return {Object} Returns a hash object between the start date and end date,
  *  with available times for each date.
  */
@@ -153,7 +154,8 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
   var defaults = {
     'dates' : false,
     'nextUnavailableAt': false,
-    'timeZone' : 'UTC'
+    'timeZone' : 'UTC',
+    'includeFullDay' : false
   };
 
   options = _.extend(defaults, options);
@@ -161,17 +163,10 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
   startDate = moment.tz(startDate, options.timeZone);
   currentDate = moment.tz(startDate, options.timeZone);
   availableDateTimes = {};
+
   // Use this object to pass by reference.
   availableUntilReferences = {value:null};
-
-
-  // var timeLoopFinish = function(startTime) {
-  //   if (options['availableUntil']) {
-
-  //   };
-  // };
-
-
+  
 
   // Loop from the start/date time to enddate time.
   while (currentDate.isBefore(endDate)){
@@ -179,8 +174,22 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
     var dayOfTheWeekKey = currentDate.format("d");
     var regularHours = null;
     var lastUnavailable = null;
+  
+    // Tracks times that the user has set to be available.    
+    var scheduledAvailability = this.regularHours[dayOfTheWeekKey];
 
-    if ((regularHours = this.regularHours[dayOfTheWeekKey]) === undefined) {
+    // If they requested full day to be returned we can by-pass checking
+    // what the regular hours are and instead we'll set the time to 0.
+    if (options.includeFullDay) {
+      regularHours = {
+        'start' : '00:00:00',
+        'end' : '23:59:59'
+      };
+    } else {
+      regularHours = scheduledAvailability;
+    }
+
+    if (regularHours === undefined) {
       // If no regular hours are set for this day, let's move forward 24 hours.
       currentDate.add(1, "d");
       continue;
@@ -202,6 +211,31 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
 
     while (currentDate.isBefore(endOfDay)) {
       var startFinish = {};
+
+      // If they set to return full times, and this is a time that they want to 
+      if (options.includeFullDay) {
+        
+        // check time in context of the current day.
+        var tmpStartDateTime = moment(currentDate);
+        var tmpEndDateTime = moment(currentDate);
+
+        // query // parse the hour minute from string.
+        var tmpStart = moment.tz(scheduledAvailability.start, "HH:mm", options.timeZone);
+        var tmpEnd = moment.tz(scheduledAvailability.end, 'HH:mm', options.timeZone);
+
+        tmpStartDateTime.set({'hour': tmpStart.hour(), 'minute' : tmpStart.minute(), 'second': 0, 'millisecond' : 0});
+        tmpEndDateTime.set({'hour': tmpEnd.hour(), 'minute' : tmpEnd.minute(), 'second': 0, 'millisecond' : 0});
+        // console.log('tt --', scheduledAvailability);
+        // console.log('ct --', currentDate.toISOString());
+        // console.log('ts --', tmpStartDateTime.toISOString());
+        // console.log('te --', tmpEndDateTime.toISOString());
+        // console.log('ib -', currentDate.isBetween(tmpStart, tmpEnd));
+
+        if (scheduledAvailability !== null && currentDate.isBetween(tmpStartDateTime, tmpEndDateTime, 'minute', '[)')) {
+          startFinish['isScheduledTime'] = true;
+        }
+
+      }
 
       // Test to see that there's no existing appointment at this time.
       var tmpUnavailableAt = this.getUnavailableAt(currentDate);

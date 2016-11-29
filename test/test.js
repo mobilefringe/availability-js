@@ -18,7 +18,8 @@ var seeds = {
   'testIncludeUnavailable' : require("./seeds/testIncludeUnavailable"),
   'testIncludeUnavailableNotes': require("./seeds/testIncludeUnavailableNotes"),
   'testUnavailableUntil': require("./seeds/testAvailableUntil"),
-  'testLongHoursCrash' : require("./seeds/testLongHoursCrash")
+  'testLongHoursCrash' : require("./seeds/testLongHoursCrash"),
+  'testRegularHoursFullDay': require("./seeds/testRegularHoursFullDay")
 };
 
 // test sunny case let's just test regular scheduled hours.
@@ -322,20 +323,37 @@ function testLongHolidaysCrashCase() {
   process.env.TZ = 'Etc/UTC';
 }
 
-// testRegularHours();
-// testNumericDays();
-// test15MinuteInterval();
-// testUnavailableSingleDay();
-// testUnavailableRanges();
-// testIsUnavailable();
-// testOutForDayAppointments();
-// testOutForDayAppointmentsWithTimeZone();
-// testUnavailableForBlock();
-// testUnavailableForBlockWithTimeZone();
-// testIncludeUnavailable();
-// testIncludeUnavailableNotes();
-// testRegularHoursWithDates();
-// testRegularHoursWithDatesTimeZone();
-// testAvailableUntil();
-// testLongHolidaysCrashCase();
+function testRegularHoursFullDay() {
+  av = new Availability();
+  av.setRegularHours(seeds.threeDays);
+
+  hours = av.getAvailability("2016-06-20", "2016-06-24", 
+    {
+      includeFullDay: true,
+      dates: true
+    }
+  );
+
+  expected = seeds.testRegularHoursFullDay;
+  assert.deepEqual(hours, expected, "Times returned didn't match expected");
+
+}
+
+testRegularHours();
+testNumericDays();
+test15MinuteInterval();
+testUnavailableSingleDay();
+testUnavailableRanges();
+testIsUnavailable();
+testOutForDayAppointments();
+testOutForDayAppointmentsWithTimeZone();
+testUnavailableForBlock();
+testUnavailableForBlockWithTimeZone();
+testIncludeUnavailable();
+testIncludeUnavailableNotes();
+testRegularHoursWithDates();
+testRegularHoursWithDatesTimeZone();
+testAvailableUntil();
+testLongHolidaysCrashCase();
 testOutForMultipleDaysWithTimeZones();
+testRegularHoursFullDay();
