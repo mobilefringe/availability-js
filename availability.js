@@ -166,7 +166,6 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
 
   // Use this object to pass by reference.
   availableUntilReferences = {value:null};
-  
 
   // Loop from the start/date time to enddate time.
   while (currentDate.isBefore(endDate)){
@@ -174,6 +173,7 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
     var dayOfTheWeekKey = currentDate.format("d");
     var regularHours = null;
     var lastUnavailable = null;
+    var dateOnStart = moment(currentDate);
   
     // Tracks times that the user has set to be available.    
     var scheduledAvailability = this.regularHours[dayOfTheWeekKey];
@@ -327,7 +327,11 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
     }
 
     // Move time foward by a day.
-    currentDate.add(1, 'd');
+    
+    // If date is same day as we started then move forward by a day. 
+    if (currentDate.isSame(dateOnStart, 'day')) {
+      currentDate.add(1, 'd');
+    }
   }
 
   return availableDateTimes;
