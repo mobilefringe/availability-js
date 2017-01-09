@@ -2,12 +2,16 @@ var Availability = require("../availability.js");
 var assert = require("assert");
 var moment = require('moment');
 var util = require('util');
+var winston = require('winston');
+
+// winston.level = 'debug';
 
 process.env.TZ = 'Etc/UTC';
 
 var seeds = {
   "threeDays" : require("./seeds/threeDays.json"),
   "fiveDays" : require("./seeds/fiveDays.json"),
+  "overlappingHours" : require('./seeds/overlappingHours'),
   "threeDaysNumeric" : require("./seeds/threeDaysNumeric.json"),
   "testRegularHours" : require("./seeds/testRegularHours"),
   "testRegularHoursWithDates" : require("./seeds/testRegularHoursWithDates"),
@@ -20,7 +24,8 @@ var seeds = {
   'testUnavailableUntil': require("./seeds/testAvailableUntil"),
   'testLongHoursCrash' : require("./seeds/testLongHoursCrash"),
   'testRegularHoursFullDay': require("./seeds/testRegularHoursFullDay"),
-  'testRegularHoursFullDayFullWeek': require("./seeds/testRegularHoursFullDayFullWeek")
+  'testRegularHoursFullDayFullWeek': require("./seeds/testRegularHoursFullDayFullWeek"),
+  'testOverlappingHours' : require('./seeds/testOverlappingHours')
 };
 
 // test sunny case let's just test regular scheduled hours.
@@ -336,8 +341,8 @@ function testRegularHoursFullDay() {
   );
 
   expected = seeds.testRegularHoursFullDay;
-  assert.deepEqual(hours, expected, "Times returned didn't match expected");
 
+  assert.deepEqual(hours, expected, "Times returned didn't match expected");
 }
 
 function testRegularHoursFullDayFullWeek() {
@@ -355,6 +360,22 @@ function testRegularHoursFullDayFullWeek() {
   assert.deepEqual(hours, expected, "Times returned didn't match expected");
 
 }
+
+function testOverlappingHours() {
+
+  av = new Availability();
+  av.setRegularHours(seeds.overlappingHours);
+  
+  hours = av.getAvailability("2017-01-09", "2017-01-15", 
+  {
+    dates: true,
+    includeFullDay: false
+  });
+
+  expected = seeds.testOverlappingHours;
+  assert.deepEqual(hours, expected, "Times returned didn't match expected");
+}
+
 
 testRegularHours();
 testNumericDays();
@@ -375,3 +396,4 @@ testLongHolidaysCrashCase();
 testOutForMultipleDaysWithTimeZones();
 testRegularHoursFullDay();
 testRegularHoursFullDayFullWeek();
+testOverlappingHours();

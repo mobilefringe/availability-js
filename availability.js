@@ -1,5 +1,6 @@
 var moment = require('moment-timezone');
 var _ = require('underscore');
+var winston = require('winston');
 
 // Guide to errors more as a reference.
 errors = {
@@ -52,7 +53,7 @@ Availability.prototype.setRegularHours = function(regularHours) {
     if (isNaN(key)) {
       day = Availability.getDateInt(key);
     }
-
+    
     cleanedHours[day] = regularHours[key];
   }
 
@@ -169,6 +170,7 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
 
   // Loop from the start/date time to enddate time.
   while (currentDate.isBefore(endDate)){
+    winston.log('debug', 'top of av loop');
     // Check if the user has regular hours set for this date.
     var dayOfTheWeekKey = currentDate.format("d");
     var regularHours = null;
@@ -183,7 +185,7 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
     if (options.includeFullDay) {
       regularHours = {
         'start' : '00:00:00',
-        'end' : '23:59:59'
+        'end' : '00:00:00'
       };
     } else {
       regularHours = scheduledAvailability;
@@ -192,26 +194,56 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
     if (regularHours === undefined) {
       // If no regular hours are set for this day, let's move forward 24 hours.
       currentDate.add(1, "d");
+      winston.log('debug', 'no valid hours for day -- skipping');
       continue;
     }
+
+    winston.log('debug', 'currentDay -- ', dayOfTheWeekKey);
+    winston.log('debug', 'regularHours -- ', regularHours);
     
     // We have regular hours for this day so let's now do some processing.
-    var dateKey = currentDate.format("Y-MM-DD");
-    
+
     // Parse our regular hour times into times and start calculating time from the start time up until the end of the day.
-    var startTime = moment.tz(regularHours.start, "HH:mm", options.timeZone);
-    var endTime = moment.tz(regularHours.end, "HH:mm", options.timeZone);
-    var endOfDay = moment(currentDate);
-    
+    var tmpStartTime = moment.tz(regularHours.start, "HH:mm", options.timeZone);
+    var tmpEndTime = moment.tz(regularHours.end, "HH:mm", options.timeZone);
+
+    var startTime = moment(currentDate);
+    var endTime = moment(currentDate);
+    startTime.hour(tmpStartTime.hour()).minute(tmpStartTime.minute());
+    endTime.hour(tmpEndTime.hour()).minute(endTime.minute());
+
+    // Keep the start day end day times relavant to our current date cursor.
+    // startTime.day(currentDate.day()).month(currentDate.month()).year(currentDate.year());
+    // endTime.day(currentDate.day()).month(currentDate.month()).year(currentDate.year());
+
     currentDate.hour(startTime.hour()).minute(startTime.minute());
+    
+
+    // if end time is < than start time we will assume that it goes into next day.
+    // allow for night shifts.
+    winston.log('debug', 'is endtime before starttime?', startTime.toISOString(), endTime.toISOString());
+    if (endTime.isSameOrBefore(startTime)) {
+      winston.log('debug', 'endtime IS before start-time assuming long day');
+      endTime.add(1, 'day');
+    }
+
+    var endOfDay = moment(endTime);
     endOfDay.hour(endTime.hour()).minute(endTime.minute());
-        
-    var times = [];
+
+    var dateKey = currentDate.format("Y-MM-DD");
+
     var nextUnavailableAt = {'time' : null};
+    winston.log('debug', 'before time loop -- ', currentDate.toISOString(), endOfDay.toISOString());
 
     while (currentDate.isBefore(endOfDay)) {
-      var startFinish = {};
+      dateKey = currentDate.format("Y-MM-DD");
 
+      if (availableDateTimes[dateKey] === undefined) {
+        availableDateTimes[dateKey] = [];
+      }
+
+      var startFinish = {};
+      winston.log('debug', 'top of day loop -- ', currentDate.toISOString());
       // If they set to return full times, and this is a time that they want to 
       if (options.includeFullDay) {
         
@@ -278,8 +310,6 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
           lastUnavailable = tmpUnavailableAt[0];
         }
 
-        
-
         if (this.includeUnavailable) {
           // If it hasn't yet been set make it an array.
           if (startFinish['unavailable'] === undefined){
@@ -315,19 +345,20 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
       }
 
       // Add time to our array of available times
-      times.push(startFinish);
+      availableDateTimes[dateKey].push(startFinish);
     }
     
     nextUnavailableAt['time'] = currentDate.toISOString();
 
 
     // If times is not empty let's add it to our array.
-    if (times.length > 0) {
-      availableDateTimes[dateKey] = times;
+    if (availableDateTimes[dateKey].length === 0) {
+      // availableDateTimes[dateKey] = times;
+      delete availableDateTimes[dateKey];
     }
 
+
     // Move time foward by a day.
-    
     // If date is same day as we started then move forward by a day. 
     if (currentDate.isSame(dateOnStart, 'day')) {
       currentDate.add(1, 'd');
