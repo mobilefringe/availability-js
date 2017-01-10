@@ -151,19 +151,81 @@ Availability.prototype.addUnavailable = function(startTime, endTime, details) {
  *  with available times for each date.
  */
 Availability.prototype.getAvailability = function(startDate, endDate, options) {
-
+  
   var defaults = {
     'dates' : false,
     'nextUnavailableAt': false,
     'timeZone' : 'UTC',
-    'includeFullDay' : false
+    'includeFullDay' : false,
+    '__depth' : 0
   };
 
   options = _.extend(defaults, options);
 
+  var _testIsScheduled = function(currentDate, dayToCompareAgainst) {
+
+    if (!dayToCompareAgainst)  {
+      dayToCompareAgainst = moment(currentDate);
+    }
+
+    // check time in context of the day passed..
+    var tmpStartDateTime = moment(dayToCompareAgainst);
+    var tmpEndDateTime = moment(dayToCompareAgainst);
+
+    var dayOfTheWeekKey = dayToCompareAgainst.format("d");
+    var scheduledAvailability = this.regularHours[dayOfTheWeekKey];
+
+    if (scheduledAvailability) {
+      // query // parse the hour minute from string.
+      var tmpStart = moment.tz(scheduledAvailability.start, "HH:mm", options.timeZone);
+      var tmpEnd = moment.tz(scheduledAvailability.end, 'HH:mm', options.timeZone);
+
+      tmpStartDateTime.set({'hour': tmpStart.hour(), 'minute' : tmpStart.minute(), 'second': 0, 'millisecond' : 0});
+      tmpEndDateTime.set({'hour': tmpEnd.hour(), 'minute' : tmpEnd.minute(), 'second': 0, 'millisecond' : 0});
+
+      // If end time happens to be before then adjust it be adding a day - deals with night shifts.
+      if (tmpEndDateTime.isSameOrBefore(tmpStartDateTime)) {
+        tmpEndDateTime.add(1, 'day');
+      }
+
+      winston.log('debug', 'Testing for scheduled time -- ', currentDate.toISOString(), tmpStartDateTime.toISOString(), tmpEndDateTime.toISOString());
+
+      if (currentDate.isBetween(tmpStartDateTime, tmpEndDateTime, 'minute', '[)')) {
+        winston.log('debug', 'Is Scheduled Time!', currentDate.toISOString());
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  winston.log('debug', 'Running with options options -- ', options);
+
   startDate = moment.tz(startDate, options.timeZone);
   currentDate = moment.tz(startDate, options.timeZone);
   availableDateTimes = {};
+
+  // We run into cases for night shifts where a day's availability hours
+  // are set a day prior to the current start date. We need to handle these hours
+  // by checking to see if we have carry over hours starting the night before.
+  // We can do this by getting recursive for the day before.
+  if (options.__depth === 0) {
+    winston.log('debug', 'diving in and trying to fetch previous day times');
+    options['__depth'] = 1;
+
+    var tmpCaryOverStart = moment(startDate).subtract(1, 'day');
+    var tmpCaryOverEnd = moment(startDate).endOf('day');
+
+    availableDateTimes = this.getAvailability(tmpCaryOverStart, tmpCaryOverEnd, options);
+
+    winston.log('debug', 'Carry Over Times for: ', tmpCaryOverStart.toISOString(), tmpCaryOverEnd.toISOString());
+    winston.log('debug', 'Found times for: ', Object.keys(availableDateTimes));
+
+    var tmpKeyStr = tmpCaryOverStart.format('Y-MM-DD');
+    
+    // Remove the start date key from the day before.
+    delete availableDateTimes[ tmpKeyStr ];
+  }
 
   // Use this object to pass by reference.
   availableUntilReferences = {value:null};
@@ -198,8 +260,8 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
       continue;
     }
 
-    winston.log('debug', 'currentDay -- ', dayOfTheWeekKey);
-    winston.log('debug', 'regularHours -- ', regularHours);
+    winston.log('debug', 'currentDay   --', dayOfTheWeekKey);
+    winston.log('debug', 'regularHours --', regularHours);
     
     // We have regular hours for this day so let's now do some processing.
 
@@ -215,7 +277,6 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
     // Keep the start day end day times relavant to our current date cursor.
     // startTime.day(currentDate.day()).month(currentDate.month()).year(currentDate.year());
     // endTime.day(currentDate.day()).month(currentDate.month()).year(currentDate.year());
-
     currentDate.hour(startTime.hour()).minute(startTime.minute());
     
 
@@ -244,24 +305,13 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
 
       var startFinish = {};
       winston.log('debug', 'top of day loop -- ', currentDate.toISOString());
+      
       // If they set to return full times, and this is a time that they want to 
       if (options.includeFullDay) {
-        
-        // check time in context of the current day.
-        var tmpStartDateTime = moment(currentDate);
-        var tmpEndDateTime = moment(currentDate);
+        if (_testIsScheduled.call(this, currentDate) || 
+            _testIsScheduled.call(this, currentDate, moment(currentDate).subtract(1, 'day'))) {
 
-        if (scheduledAvailability) {
-          // query // parse the hour minute from string.
-          var tmpStart = moment.tz(scheduledAvailability.start, "HH:mm", options.timeZone);
-          var tmpEnd = moment.tz(scheduledAvailability.end, 'HH:mm', options.timeZone);
-
-          tmpStartDateTime.set({'hour': tmpStart.hour(), 'minute' : tmpStart.minute(), 'second': 0, 'millisecond' : 0});
-          tmpEndDateTime.set({'hour': tmpEnd.hour(), 'minute' : tmpEnd.minute(), 'second': 0, 'millisecond' : 0});
-
-          if (currentDate.isBetween(tmpStartDateTime, tmpEndDateTime, 'minute', '[)')) {
-            startFinish['isScheduledTime'] = true;
-          }
+          startFinish['isScheduledTime'] = true;
         }
       }
 

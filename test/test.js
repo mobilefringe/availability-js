@@ -25,7 +25,8 @@ var seeds = {
   'testLongHoursCrash' : require("./seeds/testLongHoursCrash"),
   'testRegularHoursFullDay': require("./seeds/testRegularHoursFullDay"),
   'testRegularHoursFullDayFullWeek': require("./seeds/testRegularHoursFullDayFullWeek"),
-  'testOverlappingHours' : require('./seeds/testOverlappingHours')
+  'testOverlappingHours' : require('./seeds/testOverlappingHours'),
+  'testOverlappingHoursFullDay' : require('./seeds/testOverlappingHoursFullDay')
 };
 
 // test sunny case let's just test regular scheduled hours.
@@ -372,7 +373,24 @@ function testOverlappingHours() {
     includeFullDay: false
   });
 
+  
+
   expected = seeds.testOverlappingHours;
+  assert.deepEqual(hours, expected, "Times returned didn't match expected");
+}
+
+function testOverlappingHoursFullDay() {
+
+  av = new Availability();
+  av.setRegularHours(seeds.overlappingHours);
+  
+  hours = av.getAvailability("2017-01-09", "2017-01-11", 
+  {
+    dates: true,
+    includeFullDay: true
+  });
+
+  expected = seeds.testOverlappingHoursFullDay;
   assert.deepEqual(hours, expected, "Times returned didn't match expected");
 }
 
@@ -397,3 +415,4 @@ testOutForMultipleDaysWithTimeZones();
 testRegularHoursFullDay();
 testRegularHoursFullDayFullWeek();
 testOverlappingHours();
+testOverlappingHoursFullDay();
