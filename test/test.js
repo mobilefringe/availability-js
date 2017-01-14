@@ -17,6 +17,7 @@ var seeds = {
   "testRegularHoursWithDates" : require("./seeds/testRegularHoursWithDates"),
   "testRegularHoursWithDatesTimeZone" : require("./seeds/testRegularHoursWithDatesTimeZone"),
   'test15MinuteInterval' : require("./seeds/test15MinuteInterval"),
+  'test15MinuteIntervalFullDay' : require("./seeds/test15MinuteIntervalFullDay"),
   'testUnavailableForBlocks' : require("./seeds/testUnavailableForBlocks"),
   'testUnavailableForBlocksWithTimeZone' : require("./seeds/testUnavailableForBlocksWithTimeZone"),
   'testIncludeUnavailable' : require("./seeds/testIncludeUnavailable"),
@@ -80,6 +81,20 @@ function test15MinuteInterval(){
 
   hours = av.getAvailability("2016-06-20", "2016-06-24");
   expected = seeds.test15MinuteInterval;
+  assert.deepEqual(hours, expected, "Times returned didn't match expected");
+}
+
+// test setting an interval for 15 minutes passes
+function test15MinuteIntervalFullDay(){
+  av = new Availability();
+  av.setInterval(15);
+  av.setRegularHours(seeds.threeDays);
+
+  hours = av.getAvailability('2017-01-13T22:30:00.000Z', '2017-01-20T23:30:00.000Z', {
+    includeFullDay: true
+  });
+  
+  expected = seeds.test15MinuteIntervalFullDay;
   assert.deepEqual(hours, expected, "Times returned didn't match expected");
 
 }
@@ -398,6 +413,7 @@ function testOverlappingHoursFullDay() {
 testRegularHours();
 testNumericDays();
 test15MinuteInterval();
+test15MinuteIntervalFullDay();
 testUnavailableSingleDay();
 testUnavailableRanges();
 testIsUnavailable();

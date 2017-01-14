@@ -272,7 +272,7 @@ Availability.prototype.getAvailability = function(startDate, endDate, options) {
     var startTime = moment(currentDate);
     var endTime = moment(currentDate);
     startTime.hour(tmpStartTime.hour()).minute(tmpStartTime.minute());
-    endTime.hour(tmpEndTime.hour()).minute(endTime.minute());
+    endTime.hour(tmpEndTime.hour()).minute(tmpEndTime.minute());
 
     // Keep the start day end day times relavant to our current date cursor.
     // startTime.day(currentDate.day()).month(currentDate.month()).year(currentDate.year());
